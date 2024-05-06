@@ -5,6 +5,10 @@
               jucerFormatVersion="1">
   <MAINGROUP id="jY9vZj" name="SimpleCorrelationMeter">
     <GROUP id="{36CF012E-7BC8-6FC4-978F-4BE401BC074C}" name="Source">
+      <GROUP id="{428C78A1-6698-21CD-037D-BAB378B9337F}" name="Component">
+        <FILE id="bqlB3p" name="HorizontalMeter.h" compile="0" resource="0"
+              file="Source/HorizontalMeter.h"/>
+      </GROUP>
       <FILE id="HeCzZK" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="gSIvTh" name="PluginProcessor.h" compile="0" resource="0"
