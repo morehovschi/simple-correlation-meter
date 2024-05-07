@@ -143,7 +143,6 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     rmsLevelLeft.skip( buffer.getNumSamples() );
     rmsLevelRight.skip( buffer.getNumSamples() );
     
-    juce::String dbg;
     {
         const auto value = Decibels::gainToDecibels(
             buffer.getRMSLevel( 0, 0, buffer.getNumSamples() ) );
@@ -161,6 +160,37 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         else
             rmsLevelRight.setCurrentAndTargetValue( value );
     }
+    
+    // calculate correlation
+    
+    // get mean for left and right channels
+    float leftMean= 0.f, rightMean = 0.f;
+    const float* left = buffer.getReadPointer( 0 );
+    const float* right = buffer.getReadPointer( 1 );
+    for ( int i = 0; i < buffer.getNumSamples(); i++ ){
+        leftMean += left[ i ];
+        rightMean = right[ i ];
+    }
+    leftMean /= buffer.getNumSamples();
+    rightMean /= buffer.getNumSamples();
+    
+    // calculate Pearson correlation coefficient
+    float numerator = 0.f, leftSumSquared = 0.f, rightSumSquared = 0.f;
+    float leftDiff = 0.f, rightDiff = 0.f;
+    for ( int i = 0; i < buffer.getNumSamples(); i++ ){
+        leftDiff = left[ i ] - leftMean;
+        rightDiff = right[ i ] - rightMean;
+        
+        numerator += leftDiff * rightDiff;
+        leftSumSquared += leftDiff * leftDiff;
+        rightSumSquared += rightDiff * rightDiff;
+    }
+    
+    correlation = numerator / std::sqrt( leftSumSquared * rightSumSquared );
+    
+    juce::String dbg;
+    dbg << "Correlation=" << correlation;
+    DBG( dbg );
 }
 
 //==============================================================================
