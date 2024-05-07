@@ -95,11 +95,13 @@ void SimpleCorrelationMeterAudioProcessor::prepareToPlay (double sampleRate, int
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    rmsLevelLeft.reset( sampleRate, 0.5);
-    rmsLevelRight.reset( sampleRate, 0.5);
+    rmsLevelLeft.reset( sampleRate, 0.5f );
+    rmsLevelRight.reset( sampleRate, 0.5f );
+    correlation.reset( sampleRate, 0.15f );
     
     rmsLevelLeft.setCurrentAndTargetValue( -100.f );
     rmsLevelRight.setCurrentAndTargetValue( -100.f );
+    correlation.setCurrentAndTargetValue( 0.f );
 }
 
 void SimpleCorrelationMeterAudioProcessor::releaseResources()
@@ -173,6 +175,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
 
     rmsLevelLeft.skip( buffer.getNumSamples() );
     rmsLevelRight.skip( buffer.getNumSamples() );
+    correlation.skip( buffer.getNumSamples() );
     
     {
         const auto value = Decibels::gainToDecibels(
@@ -193,12 +196,13 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     }
     
     // calculate correlation
-    correlation = computeCorrelation( buffer.getReadPointer( 0 ),
-                                      buffer.getReadPointer( 1 ),
-                                      buffer.getNumSamples() );
+    correlation.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
+                                    buffer.getReadPointer( 1 ),
+                                    buffer.getNumSamples() ) );
     
     juce::String dbg;
-    dbg << "Correlation=" << correlation;
+    dbg << "Real correlation=" << correlation.getTargetValue();
+    dbg << ", displayed correlation=" << correlation.getCurrentValue();
     DBG( dbg );
 }
 
@@ -240,7 +244,7 @@ float SimpleCorrelationMeterAudioProcessor::getRmsValue( const int channel ) con
 }
 
 float SimpleCorrelationMeterAudioProcessor::getCorrelationCoefficient() const {
-    return correlation;
+    return correlation.getCurrentValue();
 }
 //==============================================================================
 // This creates new instances of the plugin..

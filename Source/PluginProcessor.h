@@ -58,9 +58,7 @@ public:
     float getCorrelationCoefficient() const;
 
 private:
-    juce::LinearSmoothedValue< float > rmsLevelLeft, rmsLevelRight;
-    
-    float correlation;
+    juce::LinearSmoothedValue< float > rmsLevelLeft, rmsLevelRight, correlation;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessor)
