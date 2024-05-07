@@ -134,6 +134,31 @@ bool SimpleCorrelationMeterAudioProcessor::isBusesLayoutSupported (const BusesLa
 }
 #endif
 
+static float computeCorrelation( const float* x, const float* y, int numSamples ) {
+    // get mean for left and right channels
+    float meanX = 0.f, meanY = 0.f;
+    for ( int i = 0; i < numSamples; i++ ){
+        meanX += x[ i ];
+        meanY = y[ i ];
+    }
+    meanX /= numSamples;
+    meanY /= numSamples;
+    
+    // calculate and return Pearson correlation coefficient
+    float numerator = 0.f, leftSumSquared = 0.f, rightSumSquared = 0.f;
+    float leftDiff = 0.f, rightDiff = 0.f;
+    for ( int i = 0; i < numSamples; i++ ){
+        leftDiff = x[ i ] - meanX;
+        rightDiff = y[ i ] - meanY;
+        
+        numerator += leftDiff * rightDiff;
+        leftSumSquared += leftDiff * leftDiff;
+        rightSumSquared += rightDiff * rightDiff;
+    }
+    
+    return numerator / std::sqrt( leftSumSquared * rightSumSquared );
+}
+
 void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -162,31 +187,9 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     }
     
     // calculate correlation
-    
-    // get mean for left and right channels
-    float leftMean= 0.f, rightMean = 0.f;
-    const float* left = buffer.getReadPointer( 0 );
-    const float* right = buffer.getReadPointer( 1 );
-    for ( int i = 0; i < buffer.getNumSamples(); i++ ){
-        leftMean += left[ i ];
-        rightMean = right[ i ];
-    }
-    leftMean /= buffer.getNumSamples();
-    rightMean /= buffer.getNumSamples();
-    
-    // calculate Pearson correlation coefficient
-    float numerator = 0.f, leftSumSquared = 0.f, rightSumSquared = 0.f;
-    float leftDiff = 0.f, rightDiff = 0.f;
-    for ( int i = 0; i < buffer.getNumSamples(); i++ ){
-        leftDiff = left[ i ] - leftMean;
-        rightDiff = right[ i ] - rightMean;
-        
-        numerator += leftDiff * rightDiff;
-        leftSumSquared += leftDiff * leftDiff;
-        rightSumSquared += rightDiff * rightDiff;
-    }
-    
-    correlation = numerator / std::sqrt( leftSumSquared * rightSumSquared );
+    correlation = computeCorrelation( buffer.getReadPointer( 0 ),
+                                      buffer.getReadPointer( 1 ),
+                                      buffer.getNumSamples() );
     
     juce::String dbg;
     dbg << "Correlation=" << correlation;
