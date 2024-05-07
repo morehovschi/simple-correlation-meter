@@ -144,7 +144,7 @@ static float computeCorrelation( const float* x, const float* y, int numSamples 
     meanX /= numSamples;
     meanY /= numSamples;
     
-    // calculate and return Pearson correlation coefficient
+    // calculate Pearson correlation coefficient
     float numerator = 0.f, leftSumSquared = 0.f, rightSumSquared = 0.f;
     float leftDiff = 0.f, rightDiff = 0.f;
     for ( int i = 0; i < numSamples; i++ ){
@@ -155,8 +155,14 @@ static float computeCorrelation( const float* x, const float* y, int numSamples 
         leftSumSquared += leftDiff * leftDiff;
         rightSumSquared += rightDiff * rightDiff;
     }
+    float correlation = numerator / std::sqrt( leftSumSquared * rightSumSquared );
     
-    return numerator / std::sqrt( leftSumSquared * rightSumSquared );
+    // if correlation within range (NaN guard)
+    if ( correlation >= -1.f && correlation <= 1.f ) {
+        return correlation;
+    }
+    
+    return 0.f;
 }
 
 void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)

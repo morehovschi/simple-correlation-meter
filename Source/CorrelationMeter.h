@@ -27,14 +27,7 @@ namespace Gui {
             
             g.setColour( Colours::white );
             
-            float usedCoefficient = 0.f;
-            
-            // if computed coefficient within range (guard against NaN)
-            if ( ( coefficient >= -1.f && coefficient <= 1.f ) ) {
-                usedCoefficient = coefficient;
-            }
-            
-            const auto scaledX = jmap( usedCoefficient, -1.f, 1.f, 0.f,
+            const auto scaledX = jmap( coefficient, -1.f, 1.f, 0.f,
                 static_cast< float >( getWidth() ) );
             
             g.fillRoundedRectangle( bounds.getX() + scaledX - 1,
