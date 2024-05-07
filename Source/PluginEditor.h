@@ -11,7 +11,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "HorizontalMeter.h"
-
+#include "CorrelationMeter.h"
 
 //==============================================================================
 /**
@@ -35,6 +35,8 @@ private:
     SimpleCorrelationMeterAudioProcessor& audioProcessor;
     
     Gui::HorizontalMeter horizontalMeterL, horizontalMeterR;
+    
+    Gui::CorrelationMeter correlationMeter;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessorEditor)
 };

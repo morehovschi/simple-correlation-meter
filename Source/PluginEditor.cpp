@@ -18,6 +18,7 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     
     addAndMakeVisible( horizontalMeterL );
     addAndMakeVisible( horizontalMeterR );
+    addAndMakeVisible( correlationMeter );
      
     setSize (400, 300);
     startTimerHz( 24 );
@@ -41,12 +42,15 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     
     horizontalMeterL.setBounds( 100, 100, 200, 15 );
     horizontalMeterR.setBounds( 100, 120, 200, 15 );
+    correlationMeter.setBounds( 100, 140, 200, 15);
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
     horizontalMeterL.setLevel( audioProcessor.getRmsValue( 0 ) );
     horizontalMeterR.setLevel( audioProcessor.getRmsValue( 1 ) );
+    correlationMeter.setCoefficient( audioProcessor.getCorrelationCoefficient() );
     
     horizontalMeterL.repaint();
     horizontalMeterR.repaint();
+    correlationMeter.repaint();
 }

@@ -54,6 +54,8 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     float getRmsValue( const int channel ) const;
+    
+    float getCorrelationCoefficient() const;
 
 private:
     juce::LinearSmoothedValue< float > rmsLevelLeft, rmsLevelRight;

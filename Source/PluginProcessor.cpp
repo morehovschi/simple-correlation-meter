@@ -232,6 +232,10 @@ float SimpleCorrelationMeterAudioProcessor::getRmsValue( const int channel ) con
     
     return 0.f;
 }
+
+float SimpleCorrelationMeterAudioProcessor::getCorrelationCoefficient() const {
+    return correlation;
+}
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
