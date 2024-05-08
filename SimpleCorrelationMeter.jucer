@@ -10,6 +10,8 @@
               file="Source/CorrelationMeter.h"/>
         <FILE id="bqlB3p" name="HorizontalMeter.h" compile="0" resource="0"
               file="Source/HorizontalMeter.h"/>
+        <FILE id="avfDqz" name="VerticalGradientMeter.h" compile="0" resource="0"
+              file="Source/VerticalGradientMeter.h"/>
       </GROUP>
       <FILE id="HeCzZK" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 #include "HorizontalMeter.h"
 #include "CorrelationMeter.h"
+#include "VerticalGradientMeter.h"
 
 //==============================================================================
 /**
@@ -37,6 +38,8 @@ private:
     Gui::HorizontalMeter horizontalMeterL, horizontalMeterR;
     
     Gui::CorrelationMeter correlationMeter;
+
+    Gui::VerticalGradientMeter verticalGradientMeterL, verticalGradientMeterR;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessorEditor)
 };

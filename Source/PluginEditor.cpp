@@ -11,7 +11,9 @@
 
 //==============================================================================
 SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor (SimpleCorrelationMeterAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p),
+    verticalGradientMeterL( [ & ]() { return audioProcessor.getRmsValue( 0 ); } ),
+    verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); } )
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -19,8 +21,10 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     addAndMakeVisible( horizontalMeterL );
     addAndMakeVisible( horizontalMeterR );
     addAndMakeVisible( correlationMeter );
+    addAndMakeVisible( verticalGradientMeterL );
+    addAndMakeVisible( verticalGradientMeterR );
      
-    setSize (400, 300);
+    setSize (400, 500);
     startTimerHz( 24 );
 }
 
@@ -43,6 +47,9 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     horizontalMeterL.setBounds( 100, 100, 200, 15 );
     horizontalMeterR.setBounds( 100, 120, 200, 15 );
     correlationMeter.setBounds( 100, 140, 200, 15);
+    
+    verticalGradientMeterL.setBounds( 100, 200, 15, 200 );
+    verticalGradientMeterR.setBounds( 120, 200, 15, 200 );
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
