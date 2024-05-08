@@ -21,7 +21,7 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     addAndMakeVisible( verticalGradientMeterL );
     addAndMakeVisible( verticalGradientMeterR );
      
-    setSize (400, 500);
+    setSize (400, 600);
     startTimerHz( 24 );
 }
 
@@ -41,7 +41,10 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     
-    correlationMeter.setBounds( 100, 140, 200, 15);
+    auto bounds = getLocalBounds();
+    auto correlationMeterArea = bounds.removeFromTop( getHeight() * 0.2 );
+    
+    correlationMeter.setBounds( correlationMeterArea );
     
     verticalGradientMeterL.setBounds( 100, 200, 15, 200 );
     verticalGradientMeterR.setBounds( 120, 200, 15, 200 );
