@@ -159,11 +159,12 @@ static float computeCorrelation( const float* x, const float* y, int numSamples 
     }
     float correlation = numerator / std::sqrt( leftSumSquared * rightSumSquared );
     
-    // if correlation within range (NaN guard)
+    // if correlation within range
     if ( correlation >= -1.f && correlation <= 1.f ) {
         return correlation;
     }
     
+    // NaN guard
     return 0.f;
 }
 
@@ -199,11 +200,6 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     correlation.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
                                     buffer.getReadPointer( 1 ),
                                     buffer.getNumSamples() ) );
-    
-    juce::String dbg;
-    dbg << "Real correlation=" << correlation.getTargetValue();
-    dbg << ", displayed correlation=" << correlation.getCurrentValue();
-    DBG( dbg );
 }
 
 //==============================================================================

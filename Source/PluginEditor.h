@@ -10,7 +10,6 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "HorizontalMeter.h"
 #include "CorrelationMeter.h"
 #include "VerticalGradientMeter.h"
 
@@ -34,8 +33,6 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleCorrelationMeterAudioProcessor& audioProcessor;
-    
-    Gui::HorizontalMeter horizontalMeterL, horizontalMeterR;
     
     Gui::CorrelationMeter correlationMeter;
 
