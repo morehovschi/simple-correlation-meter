@@ -53,6 +53,8 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
 
     correlationMeter.setCoefficient( audioProcessor.getCorrelationCoefficient() );
+    correlationMeter.setMinimumCorrelation(
+        audioProcessor.getMinimumCorrelation() );
     
     correlationMeter.repaint();
 }

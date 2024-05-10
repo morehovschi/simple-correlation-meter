@@ -200,6 +200,30 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     correlation.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
                                     buffer.getReadPointer( 1 ),
                                     buffer.getNumSamples() ) );
+    
+    float currentCorrelation = correlation.getCurrentValue();
+    if ( currentCorrelation < 0 ) {
+        if ( ( minimumCorrelation == -2.f ) ||
+             ( currentCorrelation < minimumCorrelation ) ) {
+            minimumCorrelation = currentCorrelation;
+        }
+    }
+    
+    if ( ( buffer.getMagnitude( 0, 0, buffer.getNumSamples() ) ) == 0 &&
+         ( buffer.getMagnitude( 1, 0, buffer.getNumSamples() ) ) == 0 ) {
+         silentBufferCount += 1;
+    } else {
+        silentBufferCount = 0;
+    }
+    
+    // if 1 second of complete silence
+    if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
+        // set to lower value to prevent overflow
+        silentBufferCount = 1;
+        // reset to sentinel value
+        minimumCorrelation = -2.f;
+    }
+
 }
 
 //==============================================================================
@@ -242,6 +266,11 @@ float SimpleCorrelationMeterAudioProcessor::getRmsValue( const int channel ) con
 float SimpleCorrelationMeterAudioProcessor::getCorrelationCoefficient() const {
     return correlation.getCurrentValue();
 }
+
+float SimpleCorrelationMeterAudioProcessor::getMinimumCorrelation() const { 
+    return minimumCorrelation;
+}
+
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

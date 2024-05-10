@@ -56,9 +56,15 @@ public:
     float getRmsValue( const int channel ) const;
     
     float getCorrelationCoefficient() const;
+    
+    float getMinimumCorrelation() const;
 
 private:
     juce::LinearSmoothedValue< float > rmsLevelLeft, rmsLevelRight, correlation;
+    
+    // initialized to sentinel value
+    float minimumCorrelation = -2.f;
+    int silentBufferCount = 0;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessor)

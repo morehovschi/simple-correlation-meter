@@ -20,6 +20,9 @@ namespace Gui {
             using namespace juce;
             
             auto bounds = getLocalBounds().toFloat();
+            
+            int textHeight = g.getCurrentFont().getHeight();
+            
             auto meterDisplay = bounds.reduced(
                 bounds.getWidth() * 0.1, bounds.getHeight() * 0.42 );
             
@@ -29,7 +32,7 @@ namespace Gui {
             // mark 0.0 correlation point
             g.setColour( Colours::white.withBrightness( 0.7f ) );
             g.fillRoundedRectangle(
-                meterDisplay.getX() + ( meterDisplay.getWidth() * 0.5 - 1 ),
+                meterDisplay.getX() + meterDisplay.getWidth() * 0.5 - 1,
                 meterDisplay.getY(),
                 2,
                 meterDisplay.getHeight(),
@@ -38,24 +41,63 @@ namespace Gui {
             // mark -0.5 and 0.5 points
             g.setColour( Colours::white.withBrightness( 0.5f ) );
             g.fillRoundedRectangle(
-                meterDisplay.getX() + ( meterDisplay.getWidth() * 0.25 - 1 ),
+                meterDisplay.getX() + meterDisplay.getWidth() * 0.25 - 1,
                 meterDisplay.getY(),
                 2,
                 meterDisplay.getHeight(),
                 0.5f );
             g.setColour( Colours::white.withBrightness( 0.5f ) );
             g.fillRoundedRectangle(
-                meterDisplay.getX() + ( meterDisplay.getWidth() * 0.75 - 1 ),
+                meterDisplay.getX() + meterDisplay.getWidth() * 0.75 - 1,
                 meterDisplay.getY(),
                 2,
                 meterDisplay.getHeight(),
                 0.5f );
                 
+            String minimumCorrelationString( "Current Minimum Correlation: " );
+            int corrStrWidth =
+                g.getCurrentFont().getStringWidth( minimumCorrelationString );
+            Rectangle < int > corrTextBox( meterDisplay.getX() +
+                                               meterDisplay.getWidth() * 0.5 -
+                                           corrStrWidth * 0.5,
+                                           meterDisplay.getY() +
+                                               meterDisplay.getHeight() + 4,
+                                           corrStrWidth,
+                                           textHeight );
+            g.drawFittedText( minimumCorrelationString,
+                              corrTextBox,
+                              textHeight,
+                              Justification::centred, 1 );
+                
+            // mark minimum correlation if value is different from sentinel value
+            if ( minimumCorrelation != -2.f ){
+                // shade of red
+                g.setColour( Colour( 209, 63, 63 ) );
+                g.fillRoundedRectangle(
+                    meterDisplay.getX() +
+                        meterDisplay.getWidth() * 0.5 +
+                        meterDisplay.getWidth() * minimumCorrelation * 0.5 - 1,
+                    meterDisplay.getY(),
+                    2,
+                    meterDisplay.getHeight(),
+                    0.5f );
+                
+                String minCorrStr( minimumCorrelation, 2, false );
+                g.drawFittedText( minCorrStr,
+                                  corrTextBox.getX() + corrTextBox.getWidth(),
+                                  corrTextBox.getY(),
+                                  g.getCurrentFont().getStringWidth( minCorrStr ),
+                                  corrTextBox.getHeight(),
+                                  Justification::centred,
+                                  1 );
+            }
+            
+            
+            g.setColour( Colours::white.withBrightness( 0.5f ) );
             std::vector< float > positions{ -1.f, -0.5f, 0.f, 0.5f, 1.f };
             for( auto pos : positions ) {
-                juce::String str( pos, 1, false );
+                String str( pos, 1, false );
                 
-                int textHeight = g.getCurrentFont().getHeight();
                 int textWidth = g.getCurrentFont().getStringWidth( str );
                 
                 juce::Rectangle< int > r;
@@ -82,7 +124,9 @@ namespace Gui {
         }
         
         void setCoefficient( const float value ) { coefficient = value; }
+        void setMinimumCorrelation( const float value ) { minimumCorrelation = value; }
     private:
         float coefficient = 0.f;
+        float minimumCorrelation = -2.f;
     };
 }
