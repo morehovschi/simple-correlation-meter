@@ -243,14 +243,14 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
             }
         } else {
             // to avoid creating clicks
-            buffer.applyGainRamp( 0, buffer.getNumSamples(), 1.f, -1.f );
+            buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), 1.f, -1.f );
         }
         
         previouslyInvertedLeft = true;
     } else {
         if ( previouslyInvertedLeft ) {
             // to avoid creating clicks
-            buffer.applyGainRamp( 0, buffer.getNumSamples(), -1.f, 1.f );
+            buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), -1.f, 1.f );
         }
         
         previouslyInvertedLeft = false;

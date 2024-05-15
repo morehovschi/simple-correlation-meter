@@ -9,6 +9,17 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+void LookAndFeel::drawToggleButton( juce::Graphics &g,
+                                    juce::ToggleButton &toggleButton,
+                                    bool shouldDrawToggleButtonAsHighlighted,
+                                    bool shouldDrawButtonAsDown ) {
+    using namespace juce;
+    
+    auto color = toggleButton.getToggleState() ? Colours::lightgrey : Colours::dimgrey;
+    g.setColour( color );
+    g.drawRect( toggleButton.getLocalBounds() );
+}
+
 //==============================================================================
 SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor( SimpleCorrelationMeterAudioProcessor& p, juce::AudioProcessorValueTreeState& vts )
     : AudioProcessorEditor (&p), audioProcessor (p),
@@ -22,11 +33,13 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     addAndMakeVisible( verticalGradientMeterL );
     addAndMakeVisible( verticalGradientMeterR );
     
-    invertLeftButton.setButtonText ("Invert Left");
+    invertLeftButton.setButtonText ( "Invert Left" );
     addAndMakeVisible( invertLeftButton );
     invertLeftAttachment.reset( new ButtonAttachment( valueTreeState,
                                                       "Invert Left",
                                                       invertLeftButton ) );
+                                                      
+    invertLeftButton.setLookAndFeel( &lnf );
      
     setSize (400, 600);
     startTimerHz( 24 );
@@ -34,9 +47,9 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
 
 SimpleCorrelationMeterAudioProcessorEditor::~SimpleCorrelationMeterAudioProcessorEditor()
 {
+    invertLeftButton.setLookAndFeel( nullptr );
 }
 
-//==============================================================================
 void SimpleCorrelationMeterAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
@@ -55,6 +68,8 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     
     verticalGradientMeterL.setBounds( 100, 200, 15, 200 );
     verticalGradientMeterR.setBounds( 120, 200, 15, 200 );
+    
+    //invertLeftButton.setBounds( 140, 200, 15, 15 );
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
@@ -65,3 +80,4 @@ void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
     
     correlationMeter.repaint();
 }
+//==============================================================================

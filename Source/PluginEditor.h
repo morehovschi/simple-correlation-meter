@@ -16,6 +16,14 @@
 //==============================================================================
 /**
 */
+
+struct LookAndFeel : juce::LookAndFeel_V4 {
+    void drawToggleButton( juce::Graphics& g,
+                           juce::ToggleButton& toggleButton,
+                           bool shouldDrawToggleButtonAsHighlighted,
+                           bool shouldDrawButtonAsDown ) override;
+};
+
 class SimpleCorrelationMeterAudioProcessorEditor  :
     public juce::AudioProcessorEditor,
     public juce::Timer
@@ -44,6 +52,8 @@ private:
     juce::AudioProcessorValueTreeState& valueTreeState;
     juce::ToggleButton invertLeftButton;
     std::unique_ptr<ButtonAttachment> invertLeftAttachment;
+    
+    LookAndFeel lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessorEditor)
 };

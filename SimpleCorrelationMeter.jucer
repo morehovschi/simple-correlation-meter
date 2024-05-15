@@ -8,8 +8,6 @@
       <GROUP id="{428C78A1-6698-21CD-037D-BAB378B9337F}" name="Component">
         <FILE id="HjuSvL" name="CorrelationMeter.h" compile="0" resource="0"
               file="Source/CorrelationMeter.h"/>
-        <FILE id="bqlB3p" name="HorizontalMeter.h" compile="0" resource="0"
-              file="Source/HorizontalMeter.h"/>
         <FILE id="avfDqz" name="VerticalGradientMeter.h" compile="0" resource="0"
               file="Source/VerticalGradientMeter.h"/>
       </GROUP>
