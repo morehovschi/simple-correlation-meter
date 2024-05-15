@@ -21,7 +21,8 @@ class SimpleCorrelationMeterAudioProcessorEditor  :
     public juce::Timer
 {
 public:
-    SimpleCorrelationMeterAudioProcessorEditor (SimpleCorrelationMeterAudioProcessor&);
+    SimpleCorrelationMeterAudioProcessorEditor(
+        SimpleCorrelationMeterAudioProcessor&, juce::AudioProcessorValueTreeState& );
     ~SimpleCorrelationMeterAudioProcessorEditor() override;
 
     //==============================================================================
@@ -30,6 +31,8 @@ public:
     void resized() override;
 
 private:
+    typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SimpleCorrelationMeterAudioProcessor& audioProcessor;
@@ -37,6 +40,10 @@ private:
     Gui::CorrelationMeter correlationMeter;
 
     Gui::VerticalGradientMeter verticalGradientMeterL, verticalGradientMeterR;
+    
+    juce::AudioProcessorValueTreeState& valueTreeState;
+    juce::ToggleButton invertLeftButton;
+    std::unique_ptr<ButtonAttachment> invertLeftAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessorEditor)
 };

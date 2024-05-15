@@ -10,16 +10,23 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor (SimpleCorrelationMeterAudioProcessor& p)
+SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor( SimpleCorrelationMeterAudioProcessor& p, juce::AudioProcessorValueTreeState& vts )
     : AudioProcessorEditor (&p), audioProcessor (p),
     verticalGradientMeterL( [ & ]() { return audioProcessor.getRmsValue( 0 ); } ),
-    verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); } )
+    verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); } ),
+    valueTreeState(vts)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible( correlationMeter );
     addAndMakeVisible( verticalGradientMeterL );
     addAndMakeVisible( verticalGradientMeterR );
+    
+    invertLeftButton.setButtonText ("Invert Left");
+    addAndMakeVisible( invertLeftButton );
+    invertLeftAttachment.reset( new ButtonAttachment( valueTreeState,
+                                                      "Invert Left",
+                                                      invertLeftButton ) );
      
     setSize (400, 600);
     startTimerHz( 24 );

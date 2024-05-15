@@ -19,9 +19,16 @@ SimpleCorrelationMeterAudioProcessor::SimpleCorrelationMeterAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
 #endif
+parameters( *this, nullptr, juce::Identifier( "SimpleCorrelationMeter" ),
+            { std::make_unique< juce::AudioParameterBool >(
+                juce::ParameterID{ "Invert Left", 1 }, "Invert Left", false ),
+              std::make_unique< juce::AudioParameterBool >(
+                juce::ParameterID{ "Invert Right", 1 }, "Invert Right", false ) } )
 {
+    invertLeft = parameters.getRawParameterValue( "Invert Left" );
+    invertRight = parameters.getRawParameterValue( "Invert Right" );
 }
 
 SimpleCorrelationMeterAudioProcessor::~SimpleCorrelationMeterAudioProcessor()
@@ -95,6 +102,8 @@ void SimpleCorrelationMeterAudioProcessor::prepareToPlay (double sampleRate, int
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+    // set up the linear smoothed values with the interval to smooth over
     rmsLevelLeft.reset( sampleRate, 0.5f );
     rmsLevelRight.reset( sampleRate, 0.5f );
     correlation.reset( sampleRate, 0.15f );
@@ -223,6 +232,29 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         // reset to sentinel value
         minimumCorrelation = -2.f;
     }
+    
+    // invert left channel phase
+    if ( *invertLeft > 0.5f ) {
+        if ( previouslyInvertedLeft ) {
+            auto* leftBuffer = buffer.getWritePointer( 0 );
+            
+            for ( int i = 0; i < buffer.getNumSamples(); i++ ) { // consider storing numSamples variable
+                leftBuffer[ i ] *= -1.f;
+            }
+        } else {
+            // to avoid creating clicks
+            buffer.applyGainRamp( 0, buffer.getNumSamples(), 1.f, -1.f );
+        }
+        
+        previouslyInvertedLeft = true;
+    } else {
+        if ( previouslyInvertedLeft ) {
+            // to avoid creating clicks
+            buffer.applyGainRamp( 0, buffer.getNumSamples(), -1.f, 1.f );
+        }
+        
+        previouslyInvertedLeft = false;
+    }
 
 }
 
@@ -234,7 +266,7 @@ bool SimpleCorrelationMeterAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleCorrelationMeterAudioProcessor::createEditor()
 {
-    return new SimpleCorrelationMeterAudioProcessorEditor (*this);
+    return new SimpleCorrelationMeterAudioProcessorEditor (*this, parameters );
 }
 
 //==============================================================================

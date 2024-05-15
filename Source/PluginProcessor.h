@@ -66,6 +66,13 @@ private:
     float minimumCorrelation = -2.f;
     int silentBufferCount = 0;
     
+    juce::AudioProcessorValueTreeState parameters;
+    
+    std::atomic< float >* invertLeft = nullptr;
+    std::atomic< float >* invertRight = nullptr;
+    
+    bool previouslyInvertedLeft = false;
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessor)
 };
