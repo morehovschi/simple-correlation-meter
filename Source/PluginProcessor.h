@@ -72,6 +72,7 @@ private:
     std::atomic< float >* invertRight = nullptr;
     
     bool previouslyInvertedLeft = false;
+    bool previouslyInvertedRight = false;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleCorrelationMeterAudioProcessor)

@@ -51,7 +51,9 @@ private:
     
     juce::AudioProcessorValueTreeState& valueTreeState;
     juce::ToggleButton invertLeftButton;
-    std::unique_ptr<ButtonAttachment> invertLeftAttachment;
+    std::unique_ptr< ButtonAttachment > invertLeftAttachment;
+    juce::ToggleButton invertRightButton;
+    std::unique_ptr< ButtonAttachment > invertRightAttachment;
     
     LookAndFeel lnf;
 

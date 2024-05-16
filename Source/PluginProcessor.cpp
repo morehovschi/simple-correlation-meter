@@ -225,7 +225,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         silentBufferCount = 0;
     }
     
-    // if 1 second of complete silence
+    // if 1 second of complete silence, reset the displayed minimum correlation
     if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
         // set to lower value to prevent overflow
         silentBufferCount = 1;
@@ -245,16 +245,33 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
             // to avoid creating clicks
             buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), 1.f, -1.f );
         }
-        
-        previouslyInvertedLeft = true;
     } else {
         if ( previouslyInvertedLeft ) {
             // to avoid creating clicks
             buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), -1.f, 1.f );
         }
-        
-        previouslyInvertedLeft = false;
     }
+    previouslyInvertedLeft = *invertLeft;
+    
+    // invert right channel phase
+    if ( *invertRight > 0.5f ) {
+        if ( previouslyInvertedRight ) {
+            auto* rightBuffer = buffer.getWritePointer( 1 );
+            
+            for ( int i = 0; i < buffer.getNumSamples(); i++ ) { // consider storing numSamples variable
+                rightBuffer[ i ] *= -1.f;
+            }
+        } else {
+            // to avoid creating clicks
+            buffer.applyGainRamp( 1, 0, buffer.getNumSamples(), 1.f, -1.f );
+        }
+    } else {
+        if ( previouslyInvertedRight ) {
+            // to avoid creating clicks
+            buffer.applyGainRamp( 1, 0, buffer.getNumSamples(), -1.f, 1.f );
+        }
+    }
+    previouslyInvertedRight = *invertRight;
 
 }
 

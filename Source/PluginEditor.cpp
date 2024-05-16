@@ -41,13 +41,20 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     addAndMakeVisible( verticalGradientMeterL );
     addAndMakeVisible( verticalGradientMeterR );
     
-    invertLeftButton.setButtonText ( "Invert Left" );
+    invertLeftButton.setButtonText( "Invert Left" );
     addAndMakeVisible( invertLeftButton );
     invertLeftAttachment.reset( new ButtonAttachment( valueTreeState,
                                                       "Invert Left",
                                                       invertLeftButton ) );
-                                                      
+    
+    invertRightButton.setButtonText( "Invert Right" );
+    addAndMakeVisible( invertRightButton );
+    invertRightAttachment.reset( new ButtonAttachment( valueTreeState,
+                                                       "Invert Right",
+                                                       invertRightButton ) );
+
     invertLeftButton.setLookAndFeel( &lnf );
+    invertRightButton.setLookAndFeel( &lnf );
      
     setSize (400, 600);
     startTimerHz( 24 );
@@ -56,6 +63,7 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
 SimpleCorrelationMeterAudioProcessorEditor::~SimpleCorrelationMeterAudioProcessorEditor()
 {
     invertLeftButton.setLookAndFeel( nullptr );
+    invertRightButton.setLookAndFeel( nullptr );
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::paint (juce::Graphics& g)
@@ -81,11 +89,18 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     int horizontalGap = 10;
     int verticalGap = leftButtonArea.getHeight() * 0.1;
     int buttonHeight = leftButtonArea.getHeight() * 0.5;
-    int buttonWidth = buttonHeight * 2.5;
+    int buttonWidth = buttonHeight * 3;
+    
     invertLeftButton.setBounds(
         leftButtonArea.getX() + leftButtonArea.getWidth() - horizontalGap -
             buttonWidth,
         leftButtonArea.getY() + verticalGap,
+        buttonWidth,
+        buttonHeight );
+    
+    invertRightButton.setBounds(
+        rightButtonArea.getX() + horizontalGap,
+        rightButtonArea.getY() + verticalGap,
         buttonWidth,
         buttonHeight );
     
