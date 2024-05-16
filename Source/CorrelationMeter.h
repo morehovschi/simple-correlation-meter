@@ -54,7 +54,7 @@ namespace Gui {
                 meterDisplay.getHeight(),
                 0.5f );
                 
-            String minimumCorrelationString( "Current Minimum Correlation: " );
+            String minimumCorrelationString( "Current Minimum: " );
             int corrStrWidth =
                 g.getCurrentFont().getStringWidth( minimumCorrelationString );
             Rectangle < int > corrTextBox( meterDisplay.getX() +
