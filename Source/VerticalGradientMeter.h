@@ -24,11 +24,10 @@ namespace Gui {
         }
         void paint( juce::Graphics& g ) override {
             using namespace juce;
-        
-            const auto level = valueSupplier();
             
             auto bounds = getDisplayBounds();
             
+            // draw horizontal lines and labels for several decibel positions
             std::vector< float > positions{ 0.f, -15.f, -30.f, -45.f };
             for ( auto position: positions ) {
                 g.setColour( Colours::lightgrey.withBrightness( 0.5f ) );
@@ -60,22 +59,24 @@ namespace Gui {
                                       ( float ) bounds.getX() + bounds.getWidth() );
             }
             
+            // draw the current RMS level as a green to red gradient
+            const auto level = valueSupplier();
+            auto gradientBounds = getDisplayBounds();
             g.setGradientFill( gradient );
             const auto scaledY =
                 jmap( level, -60.f, 6.f, 0.f,
                       static_cast< float >( bounds.getHeight() ) );
             if ( level >= -59.9f )
                 // avoids drawing a green line at the bottom when no signal
-                g.fillRect( bounds.removeFromBottom( scaledY ) );
+                g.fillRect( gradientBounds.removeFromBottom( scaledY ) );
             
-            bounds = getDisplayBounds();
-            
-            // draw meter boundaries
+            // draw enclosing meter box
             g.setColour( Colours::lightgrey.withBrightness( 0.5f ) );
             g.drawRect( bounds );
         }
         
         void resized() override {
+        /* initialize the the color gradient */
             using namespace juce;
             
             const auto bounds = getDisplayBounds();
@@ -92,6 +93,7 @@ namespace Gui {
         }
         
         juce::Rectangle< float > getDisplayBounds() const {
+        /* determine meter display bounds within the designated meter area */
             auto bounds = getLocalBounds().toFloat();
             
             int width = bounds.getWidth();
