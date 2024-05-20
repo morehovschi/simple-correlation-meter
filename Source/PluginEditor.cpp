@@ -31,8 +31,10 @@ void LookAndFeel::drawToggleButton( juce::Graphics &g,
 //==============================================================================
 SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor( SimpleCorrelationMeterAudioProcessor& p, juce::AudioProcessorValueTreeState& vts )
     : AudioProcessorEditor (&p), audioProcessor (p),
-    verticalGradientMeterL( [ & ]() { return audioProcessor.getRmsValue( 0 ); } ),
-    verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); } ),
+    verticalGradientMeterL( [ & ]() { return audioProcessor.getRmsValue( 0 ); },
+        true ),
+    verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); },
+        false ),
     valueTreeState(vts)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -104,10 +106,12 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
         buttonWidth,
         buttonHeight );
     
-    verticalGradientMeterL.setBounds( 100, 200, 15, 200 );
-    verticalGradientMeterR.setBounds( 120, 200, 15, 200 );
-    
-    
+    auto leftMeterArea = bounds.removeFromTop( bounds.getHeight() * 0.6 );
+    auto rightMeterArea = leftMeterArea.removeFromRight(
+        getWidth() * 0.5 );
+        
+    verticalGradientMeterL.setBounds( leftMeterArea );
+    verticalGradientMeterR.setBounds( rightMeterArea );
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
