@@ -56,9 +56,11 @@ public:
     float getRmsValue( const int channel ) const;
     
     float getCorrelationIn() const;
+    float getCorrelationOut() const;
     
     float getMinCorrelationIn() const;
-
+    float getMinCorrelationOut() const;
+    
 private:
     juce::LinearSmoothedValue< float >
         rmsLevelLeft, rmsLevelRight, correlationIn, correlationOut;
@@ -67,7 +69,11 @@ private:
     float minCorrelationIn = -2.f;
     float minCorrelationOut = -2.f;
     
+    // to stop displaying minimum correlation when no sound going through
     int silentBufferCount = 0;
+    
+    // to not show correlation-out right away, but wait for ramp
+    int outCorrelationWait = 0;
     
     juce::AudioProcessorValueTreeState parameters;
     

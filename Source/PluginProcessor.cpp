@@ -9,6 +9,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+const float CORRELATION_RAMP = 0.15f;
+
 //==============================================================================
 SimpleCorrelationMeterAudioProcessor::SimpleCorrelationMeterAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -106,8 +108,8 @@ void SimpleCorrelationMeterAudioProcessor::prepareToPlay (double sampleRate, int
     // set up the linear smoothed values with the interval to smooth over
     rmsLevelLeft.reset( sampleRate, 0.5f );
     rmsLevelRight.reset( sampleRate, 0.5f );
-    correlationIn.reset( sampleRate, 0.15f );
-    correlationOut.reset( sampleRate, 0.15f );
+    correlationIn.reset( sampleRate, CORRELATION_RAMP );
+    correlationOut.reset( sampleRate, CORRELATION_RAMP );
     
     rmsLevelLeft.setCurrentAndTargetValue( -100.f );
     rmsLevelRight.setCurrentAndTargetValue( -100.f );
@@ -184,14 +186,15 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
 
     using namespace juce;
 
-    rmsLevelLeft.skip( buffer.getNumSamples() );
-    rmsLevelRight.skip( buffer.getNumSamples() );
-    correlationIn.skip( buffer.getNumSamples() );
-    correlationOut.skip( buffer.getNumSamples() );
+    int bufferSize = buffer.getNumSamples();
+    rmsLevelLeft.skip( bufferSize );
+    rmsLevelRight.skip( bufferSize );
+    correlationIn.skip( bufferSize );
+    correlationOut.skip( bufferSize );
     
     {
         const auto value = Decibels::gainToDecibels(
-            buffer.getRMSLevel( 0, 0, buffer.getNumSamples() ) );
+            buffer.getRMSLevel( 0, 0, bufferSize ) );
         if ( value < rmsLevelLeft.getCurrentValue() )
             rmsLevelLeft.setTargetValue( value );
         else
@@ -200,7 +203,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
 
     {
         const auto value = Decibels::gainToDecibels(
-            buffer.getRMSLevel( 1, 0, buffer.getNumSamples() ) );
+            buffer.getRMSLevel( 1, 0, bufferSize ) );
         if ( value < rmsLevelRight.getCurrentValue() )
             rmsLevelRight.setTargetValue( value );
         else
@@ -210,7 +213,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     // calculate correlation
     correlationIn.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
                                     buffer.getReadPointer( 1 ),
-                                    buffer.getNumSamples() ) );
+                                    bufferSize ) );
     
     float currentCorrelationIn = correlationIn.getCurrentValue();
     if ( currentCorrelationIn < 0 ) {
@@ -225,17 +228,23 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         if ( previouslyInvertedLeft ) {
             auto* leftBuffer = buffer.getWritePointer( 0 );
             
-            for ( int i = 0; i < buffer.getNumSamples(); i++ ) { // consider storing numSamples variable
+            for ( int i = 0; i < bufferSize; i++ ) { // consider storing numSamples variable
                 leftBuffer[ i ] *= -1.f;
             }
         } else {
             // to avoid creating clicks
-            buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), 1.f, -1.f );
+            buffer.applyGainRamp( 0, 0, bufferSize, 1.f, -1.f );
+            // reset displayed current minimum correlation
+            
+            minCorrelationOut = -2.f;
+            outCorrelationWait = CORRELATION_RAMP * getSampleRate();
         }
     } else {
         if ( previouslyInvertedLeft ) {
-            // to avoid creating clicks
-            buffer.applyGainRamp( 0, 0, buffer.getNumSamples(), -1.f, 1.f );
+            buffer.applyGainRamp( 0, 0, bufferSize, -1.f, 1.f );
+            
+            minCorrelationOut = -2.f;
+            outCorrelationWait = CORRELATION_RAMP * getSampleRate();
         }
     }
     previouslyInvertedLeft = *invertLeft;
@@ -245,23 +254,27 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         if ( previouslyInvertedRight ) {
             auto* rightBuffer = buffer.getWritePointer( 1 );
             
-            for ( int i = 0; i < buffer.getNumSamples(); i++ ) { // consider storing numSamples variable
+            for ( int i = 0; i < bufferSize; i++ ) { // consider storing numSamples variable
                 rightBuffer[ i ] *= -1.f;
             }
         } else {
-            // to avoid creating clicks
-            buffer.applyGainRamp( 1, 0, buffer.getNumSamples(), 1.f, -1.f );
+            buffer.applyGainRamp( 1, 0, bufferSize, 1.f, -1.f );
+            
+            minCorrelationOut = -2.f;
+            outCorrelationWait = CORRELATION_RAMP * getSampleRate();
         }
     } else {
         if ( previouslyInvertedRight ) {
-            // to avoid creating clicks
-            buffer.applyGainRamp( 1, 0, buffer.getNumSamples(), -1.f, 1.f );
+            buffer.applyGainRamp( 1, 0, bufferSize, -1.f, 1.f );
+            
+            minCorrelationOut = -2.f;
+            outCorrelationWait = CORRELATION_RAMP * getSampleRate();
         }
     }
     previouslyInvertedRight = *invertRight;
     
-    // no need to calculate correlation out sample-by-sample – it is the negative of
-    // correlation in if left or right has been inverted, otherwise it's the same
+    // no need to calculate correlation-out sample-by-sample – it is the negative of
+    // correlation-in if left or right has been inverted, otherwise it's the same
     if ( *invertLeft != *invertRight ) {
         correlationOut.setTargetValue( correlationIn.getTargetValue() * ( -1.f ) );
     } else {
@@ -270,31 +283,33 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     
     float currentCorrelationOut = correlationOut.getCurrentValue();
     if ( currentCorrelationOut < 0 ) {
-        if ( ( minCorrelationOut == -2.f ) ||
-             ( currentCorrelationOut < minCorrelationOut ) ) {
+        if ( ( outCorrelationWait == 0 ) && // when this value non-zero => ramping
+             ( ( ( minCorrelationOut == -2.f ) || // -2.0 => sentinel value
+               ( currentCorrelationOut < minCorrelationOut ) ) ) ) {
             minCorrelationOut = currentCorrelationOut;
         }
     }
-    
-    String dbg;
-    dbg << "Corr in:" << correlationIn.getCurrentValue();
-    dbg << ", corr out:" << correlationOut.getCurrentValue();
-    DBG( dbg );
 
-    // count if silent buffer – if enough silent buffers, minimum correlation resets
-    if ( ( buffer.getMagnitude( 0, 0, buffer.getNumSamples() ) ) == 0 &&
-         ( buffer.getMagnitude( 1, 0, buffer.getNumSamples() ) ) == 0 ) {
+    // count if silent buffer – if 1 second of silence, minimum correlation resets
+    if ( ( buffer.getMagnitude( 0, 0, bufferSize ) ) == 0 &&
+         ( buffer.getMagnitude( 1, 0, bufferSize ) ) == 0 ) {
          silentBufferCount += 1;
     } else {
         silentBufferCount = 0;
     }
     
     // if 1 second of complete silence, reset the displayed minimum correlation
-    if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
+    if ( silentBufferCount >= getSampleRate() / bufferSize ) {
         // set to lower value to prevent overflow
         silentBufferCount = 1;
         // reset to sentinel value
         minCorrelationIn = -2.f;
+        minCorrelationOut = -2.f;
+    }
+    
+    // if ramping to or from inverted value, decrement the wait counter
+    if ( outCorrelationWait ) {
+        outCorrelationWait = jmax( outCorrelationWait - bufferSize, 0 );
     }
 }
 
@@ -339,8 +354,16 @@ float SimpleCorrelationMeterAudioProcessor::getCorrelationIn() const {
     return correlationIn.getCurrentValue();
 }
 
+float SimpleCorrelationMeterAudioProcessor::getCorrelationOut() const {
+    return correlationOut.getCurrentValue();
+}
+
 float SimpleCorrelationMeterAudioProcessor::getMinCorrelationIn() const { 
     return minCorrelationIn;
+}
+
+float SimpleCorrelationMeterAudioProcessor::getMinCorrelationOut() const {
+    return minCorrelationOut;
 }
 
 //==============================================================================

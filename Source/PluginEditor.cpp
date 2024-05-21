@@ -31,7 +31,8 @@ void LookAndFeel::drawToggleButton( juce::Graphics &g,
 //==============================================================================
 SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessorEditor( SimpleCorrelationMeterAudioProcessor& p, juce::AudioProcessorValueTreeState& vts )
     : AudioProcessorEditor (&p), audioProcessor (p),
-    correlationIn( "Correlation In:" ),
+    correlationIn( "Correlation in:" ),
+    correlationOut( "Correlation out:" ),
     verticalGradientMeterL( [ & ]() { return audioProcessor.getRmsValue( 0 ); },
                             true ),
     verticalGradientMeterR( [ & ]() { return audioProcessor.getRmsValue( 1 ); },
@@ -41,6 +42,7 @@ SimpleCorrelationMeterAudioProcessorEditor::SimpleCorrelationMeterAudioProcessor
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     addAndMakeVisible( correlationIn );
+    addAndMakeVisible( correlationOut );
     addAndMakeVisible( verticalGradientMeterL );
     addAndMakeVisible( verticalGradientMeterR );
     
@@ -81,7 +83,7 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
     // subcomponents in your editor..
     
     auto bounds = getLocalBounds();
-    auto correlationInArea = bounds.removeFromTop( getHeight() * 0.15f );
+    auto correlationInArea = bounds.removeFromTop( getHeight() * 0.2f );
     
     correlationIn.setBounds( correlationInArea );
     
@@ -113,14 +115,20 @@ void SimpleCorrelationMeterAudioProcessorEditor::resized()
         
     verticalGradientMeterL.setBounds( leftMeterArea );
     verticalGradientMeterR.setBounds( rightMeterArea );
+    
+    auto correlationOutArea = bounds.removeFromTop( getHeight() * 0.2f );
+    correlationOut.setBounds( correlationOutArea );
 }
 
 void SimpleCorrelationMeterAudioProcessorEditor::timerCallback() {
 
     correlationIn.setCoefficient( audioProcessor.getCorrelationIn() );
-    correlationIn.setMinimumCorrelation(
-        audioProcessor.getMinCorrelationIn() );
+    correlationIn.setMinimumCorrelation( audioProcessor.getMinCorrelationIn() );
+        
+    correlationOut.setCoefficient( audioProcessor.getCorrelationOut() );
+    correlationOut.setMinimumCorrelation( audioProcessor.getMinCorrelationOut() );
     
     correlationIn.repaint();
+    correlationOut.repaint();
 }
 //==============================================================================

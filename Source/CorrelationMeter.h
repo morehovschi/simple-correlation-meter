@@ -25,6 +25,16 @@ namespace Gui {
             
             int textHeight = g.getCurrentFont().getHeight();
             
+            g.setColour( Colours::white.withBrightness( 0.5f ) );
+            auto titleBar = bounds.removeFromTop( textHeight * 1.5f );
+            g.drawFittedText( name,
+                              titleBar.getX() + titleBar.getWidth() * 0.07,
+                              titleBar.getY() + textHeight,
+                              g.getCurrentFont().getStringWidth( name ),
+                              textHeight,
+                              Justification::centred,
+                              1 );
+            
             auto meterDisplay = bounds.reduced(
                 bounds.getWidth() * 0.1, bounds.getHeight() * 0.42 );
             
@@ -56,14 +66,14 @@ namespace Gui {
                 meterDisplay.getHeight(),
                 0.5f );
                 
-            String minimumCorrelationString( "Current Minimum: " );
+            String minimumCorrelationString( "Current minimum: " );
             int corrStrWidth =
                 g.getCurrentFont().getStringWidth( minimumCorrelationString );
             Rectangle < int > corrTextBox( meterDisplay.getX() +
                                                meterDisplay.getWidth() * 0.5 -
                                            corrStrWidth * 0.5,
                                            meterDisplay.getY() +
-                                               meterDisplay.getHeight() + 4,
+                                               meterDisplay.getHeight() * 1.75,
                                            corrStrWidth,
                                            textHeight );
             g.drawFittedText( minimumCorrelationString,
@@ -128,6 +138,7 @@ namespace Gui {
         void setCoefficient( const float value ) { coefficient = value; }
         void setMinimumCorrelation( const float value ) { minimumCorrelation = value; }
         juce::String getName() { return name; }
+        
     private:
         juce::String name;
         float coefficient = 0.f;

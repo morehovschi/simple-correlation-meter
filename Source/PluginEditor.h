@@ -45,7 +45,7 @@ private:
     // access the processor object that created it.
     SimpleCorrelationMeterAudioProcessor& audioProcessor;
     
-    Gui::CorrelationMeter correlationIn;
+    Gui::CorrelationMeter correlationIn, correlationOut;
 
     Gui::VerticalGradientMeter verticalGradientMeterL, verticalGradientMeterR;
     
