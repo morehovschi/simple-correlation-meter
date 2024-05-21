@@ -61,10 +61,11 @@ public:
 
 private:
     juce::LinearSmoothedValue< float >
-        rmsLevelLeft, rmsLevelRight, correlationIn;
+        rmsLevelLeft, rmsLevelRight, correlationIn, correlationOut;
     
     // initialized to sentinel value
     float minCorrelationIn = -2.f;
+    float minCorrelationOut = -2.f;
     
     int silentBufferCount = 0;
     

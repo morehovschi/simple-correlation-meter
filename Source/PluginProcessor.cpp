@@ -107,6 +107,7 @@ void SimpleCorrelationMeterAudioProcessor::prepareToPlay (double sampleRate, int
     rmsLevelLeft.reset( sampleRate, 0.5f );
     rmsLevelRight.reset( sampleRate, 0.5f );
     correlationIn.reset( sampleRate, 0.15f );
+    correlationOut.reset( sampleRate, 0.15f );
     
     rmsLevelLeft.setCurrentAndTargetValue( -100.f );
     rmsLevelRight.setCurrentAndTargetValue( -100.f );
@@ -186,6 +187,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     rmsLevelLeft.skip( buffer.getNumSamples() );
     rmsLevelRight.skip( buffer.getNumSamples() );
     correlationIn.skip( buffer.getNumSamples() );
+    correlationOut.skip( buffer.getNumSamples() );
     
     {
         const auto value = Decibels::gainToDecibels(
@@ -216,13 +218,6 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
              ( currentCorrelationIn < minCorrelationIn ) ) {
             minCorrelationIn = currentCorrelationIn;
         }
-    }
-    
-    if ( ( buffer.getMagnitude( 0, 0, buffer.getNumSamples() ) ) == 0 &&
-         ( buffer.getMagnitude( 1, 0, buffer.getNumSamples() ) ) == 0 ) {
-         silentBufferCount += 1;
-    } else {
-        silentBufferCount = 0;
     }
     
     // invert left channel phase
@@ -264,8 +259,37 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         }
     }
     previouslyInvertedRight = *invertRight;
+    
+    // no need to calculate correlation out sample-by-sample – it is the negative of
+    // correlation in if left or right has been inverted, otherwise it's the same
+    if ( *invertLeft != *invertRight ) {
+        correlationOut.setTargetValue( correlationIn.getTargetValue() * ( -1.f ) );
+    } else {
+        correlationOut.setTargetValue( correlationIn.getTargetValue() );
+    }
+    
+    float currentCorrelationOut = correlationOut.getCurrentValue();
+    if ( currentCorrelationOut < 0 ) {
+        if ( ( minCorrelationOut == -2.f ) ||
+             ( currentCorrelationOut < minCorrelationOut ) ) {
+            minCorrelationOut = currentCorrelationOut;
+        }
+    }
+    
+    String dbg;
+    dbg << "Corr in:" << correlationIn.getCurrentValue();
+    dbg << ", corr out:" << correlationOut.getCurrentValue();
+    DBG( dbg );
 
-        // if 1 second of complete silence, reset the displayed minimum correlation
+    // count if silent buffer – if enough silent buffers, minimum correlation resets
+    if ( ( buffer.getMagnitude( 0, 0, buffer.getNumSamples() ) ) == 0 &&
+         ( buffer.getMagnitude( 1, 0, buffer.getNumSamples() ) ) == 0 ) {
+         silentBufferCount += 1;
+    } else {
+        silentBufferCount = 0;
+    }
+    
+    // if 1 second of complete silence, reset the displayed minimum correlation
     if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
         // set to lower value to prevent overflow
         silentBufferCount = 1;
