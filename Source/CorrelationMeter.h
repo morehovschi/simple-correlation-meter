@@ -16,6 +16,8 @@ namespace Gui {
     class CorrelationMeter : public juce::Component {
     
     public:
+        CorrelationMeter( const juce::String&& name ) : name( std::move( name ) ) {}
+        
         void paint( juce::Graphics& g ) override {
             using namespace juce;
             
@@ -125,7 +127,9 @@ namespace Gui {
         
         void setCoefficient( const float value ) { coefficient = value; }
         void setMinimumCorrelation( const float value ) { minimumCorrelation = value; }
+        juce::String getName() { return name; }
     private:
+        juce::String name;
         float coefficient = 0.f;
         float minimumCorrelation = -2.f;
     };

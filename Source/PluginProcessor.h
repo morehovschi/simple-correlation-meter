@@ -55,15 +55,17 @@ public:
     
     float getRmsValue( const int channel ) const;
     
-    float getCorrelationCoefficient() const;
+    float getCorrelationIn() const;
     
-    float getMinimumCorrelation() const;
+    float getMinCorrelationIn() const;
 
 private:
-    juce::LinearSmoothedValue< float > rmsLevelLeft, rmsLevelRight, correlation;
+    juce::LinearSmoothedValue< float >
+        rmsLevelLeft, rmsLevelRight, correlationIn;
     
     // initialized to sentinel value
-    float minimumCorrelation = -2.f;
+    float minCorrelationIn = -2.f;
+    
     int silentBufferCount = 0;
     
     juce::AudioProcessorValueTreeState parameters;

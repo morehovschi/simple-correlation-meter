@@ -106,11 +106,11 @@ void SimpleCorrelationMeterAudioProcessor::prepareToPlay (double sampleRate, int
     // set up the linear smoothed values with the interval to smooth over
     rmsLevelLeft.reset( sampleRate, 0.5f );
     rmsLevelRight.reset( sampleRate, 0.5f );
-    correlation.reset( sampleRate, 0.15f );
+    correlationIn.reset( sampleRate, 0.15f );
     
     rmsLevelLeft.setCurrentAndTargetValue( -100.f );
     rmsLevelRight.setCurrentAndTargetValue( -100.f );
-    correlation.setCurrentAndTargetValue( 0.f );
+    correlationIn.setCurrentAndTargetValue( 0.f );
 }
 
 void SimpleCorrelationMeterAudioProcessor::releaseResources()
@@ -185,7 +185,7 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
 
     rmsLevelLeft.skip( buffer.getNumSamples() );
     rmsLevelRight.skip( buffer.getNumSamples() );
-    correlation.skip( buffer.getNumSamples() );
+    correlationIn.skip( buffer.getNumSamples() );
     
     {
         const auto value = Decibels::gainToDecibels(
@@ -206,15 +206,15 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     }
     
     // calculate correlation
-    correlation.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
+    correlationIn.setTargetValue( computeCorrelation( buffer.getReadPointer( 0 ),
                                     buffer.getReadPointer( 1 ),
                                     buffer.getNumSamples() ) );
     
-    float currentCorrelation = correlation.getCurrentValue();
-    if ( currentCorrelation < 0 ) {
-        if ( ( minimumCorrelation == -2.f ) ||
-             ( currentCorrelation < minimumCorrelation ) ) {
-            minimumCorrelation = currentCorrelation;
+    float currentCorrelationIn = correlationIn.getCurrentValue();
+    if ( currentCorrelationIn < 0 ) {
+        if ( ( minCorrelationIn == -2.f ) ||
+             ( currentCorrelationIn < minCorrelationIn ) ) {
+            minCorrelationIn = currentCorrelationIn;
         }
     }
     
@@ -223,14 +223,6 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
          silentBufferCount += 1;
     } else {
         silentBufferCount = 0;
-    }
-    
-    // if 1 second of complete silence, reset the displayed minimum correlation
-    if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
-        // set to lower value to prevent overflow
-        silentBufferCount = 1;
-        // reset to sentinel value
-        minimumCorrelation = -2.f;
     }
     
     // invert left channel phase
@@ -273,6 +265,13 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
     }
     previouslyInvertedRight = *invertRight;
 
+        // if 1 second of complete silence, reset the displayed minimum correlation
+    if ( silentBufferCount >= getSampleRate() / buffer.getNumSamples() ) {
+        // set to lower value to prevent overflow
+        silentBufferCount = 1;
+        // reset to sentinel value
+        minCorrelationIn = -2.f;
+    }
 }
 
 //==============================================================================
@@ -312,12 +311,12 @@ float SimpleCorrelationMeterAudioProcessor::getRmsValue( const int channel ) con
     return 0.f;
 }
 
-float SimpleCorrelationMeterAudioProcessor::getCorrelationCoefficient() const {
-    return correlation.getCurrentValue();
+float SimpleCorrelationMeterAudioProcessor::getCorrelationIn() const {
+    return correlationIn.getCurrentValue();
 }
 
-float SimpleCorrelationMeterAudioProcessor::getMinimumCorrelation() const { 
-    return minimumCorrelation;
+float SimpleCorrelationMeterAudioProcessor::getMinCorrelationIn() const { 
+    return minCorrelationIn;
 }
 
 //==============================================================================
