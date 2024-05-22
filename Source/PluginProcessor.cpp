@@ -304,13 +304,13 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
         }
     }
     
+    // reset displayed min correlation when transitioning from paused to playing
     auto playhead = getPlayHead();
-	if ( playhead != nullptr ) // playhead may not always exist
+	if ( playhead != nullptr )
 	{
         if ( playhead->getPosition() ) {
             auto info = get( playhead->getPosition() ); // unwrap Optional value
             
-            // reset displayed min correlation when transitioning to playing
             if ( info.getIsPlaying() && ( previouslyPlaying == false ) ) {
                 // reset to sentinel value
                 minCorrelationIn = -2.f;
