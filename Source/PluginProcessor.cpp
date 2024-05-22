@@ -180,6 +180,20 @@ static float computeCorrelation( const float* x, const float* y, int numSamples 
     return 0.f;
 }
 
+/*
+helper that unwraps Optional values;
+from: https://forum.juce.com/t/juce-optional-get/51982/2
+*/
+template <typename Value>
+Value get( juce::Optional<Value> opt, Value fallback = {} )
+{
+    if ( opt.hasValue() )
+        return *opt;
+
+    jassertfalse;
+    return fallback;
+}
+
 void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -289,23 +303,23 @@ void SimpleCorrelationMeterAudioProcessor::processBlock (juce::AudioBuffer<float
             minCorrelationOut = currentCorrelationOut;
         }
     }
-
-    // count if silent buffer – if 1 second of silence, minimum correlation resets
-    if ( ( buffer.getMagnitude( 0, 0, bufferSize ) ) == 0 &&
-         ( buffer.getMagnitude( 1, 0, bufferSize ) ) == 0 ) {
-         silentBufferCount += 1;
-    } else {
-        silentBufferCount = 0;
-    }
     
-    // if 1 second of complete silence, reset the displayed minimum correlation
-    if ( silentBufferCount >= getSampleRate() / bufferSize ) {
-        // set to lower value to prevent overflow
-        silentBufferCount = 1;
-        // reset to sentinel value
-        minCorrelationIn = -2.f;
-        minCorrelationOut = -2.f;
-    }
+    auto playhead = getPlayHead();
+	if ( playhead != nullptr ) // playhead may not always exist
+	{
+        if ( playhead->getPosition() ) {
+            auto info = get( playhead->getPosition() ); // unwrap Optional value
+            
+            // reset displayed min correlation when transitioning to playing
+            if ( info.getIsPlaying() && ( previouslyPlaying == false ) ) {
+                // reset to sentinel value
+                minCorrelationIn = -2.f;
+                minCorrelationOut = -2.f;
+            }
+            
+            previouslyPlaying = info.getIsPlaying();
+        }
+	}
     
     // if ramping to or from inverted value, decrement the wait counter
     if ( outCorrelationWait ) {

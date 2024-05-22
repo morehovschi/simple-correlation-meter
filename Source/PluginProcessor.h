@@ -69,8 +69,8 @@ private:
     float minCorrelationIn = -2.f;
     float minCorrelationOut = -2.f;
     
-    // to stop displaying minimum correlation when no sound going through
-    int silentBufferCount = 0;
+    // to detect transitions from paused audio to playing
+    bool previouslyPlaying = false;
     
     // to not show correlation-out right away, but wait for ramp
     int outCorrelationWait = 0;
